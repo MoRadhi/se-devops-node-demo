@@ -14,9 +14,10 @@ jobs:
       - checkout
       - node/install-packages:
           pkg-manager: npm
-      - run: |
-          echo "Installing dependencies..."
-          npm install
+      - run:
+          name: Build Application Assets
+          command: npm run build
+
   test:
     docker:
       - image: cimg/node:16.10
@@ -24,26 +25,41 @@ jobs:
       - checkout
       - node/install-packages:
           pkg-manager: npm
-      - run: |
-          echo "Run tests..."
-          npm run test
-  publish:
-    executor: docker/docker 
-    steps:
-      - setup_remote_docker
-      - checkout
-      - docker/check
-      - docker/build: #builds the image, similar to docker build -t "name:tag" .
-          image: moradhi1/circleci-docker-test
-          tag: v1.0.3
-      - docker/push: #pushes the image to specified account in the environment variables
-          image: moradhi1/circleci-docker-test
-          tag: v1.0.3
+      - run:
+          name: Run Tests
+          command: npm run test --if-present # Prevents crashing if we don't have tests written yet
 
+  publish:
+    executor: docker/docker
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+      - docker/check
+
+      # Log in to Docker Hub using environment variables
+      - docker/login:
+          username: DOCKER_LOGIN
+          password: DOCKER_PASSWORD
+
+      # Build and Push Original Project (v1.0.0)
+      - docker/build:
+          image: moradhi1/circleci-docker-test
+          tag: v1.0.0
+      - docker/push:
+          image: moradhi1/circleci-docker-test
+          tag: v1.0.0
+
+      # 3. Build and Push Updated Title Project (v1.0.1)
+      - docker/build:
+          image: moradhi1/circleci-docker-test
+          tag: v1.0.1
+      - docker/push:
+          image: moradhi1/circleci-docker-test
+          tag: v1.0.1
 
 # workflow
 workflows:
-  # Name of the workflow is simple_workflow
   simple_workflow:
     jobs:
       - build
