@@ -34,17 +34,15 @@ jobs:
       - setup_remote_docker:
           version: 20.10.14
 
-      # FIX: Authenticate here. The orb automatically looks for your env variables.
-      - docker/check:
-          registry-username: DOCKER_LOGIN
-          registry-password: DOCKER_PASSWORD
+      # 1. This command natively authenticates using DOCKER_LOGIN and DOCKER_PASSWORD behind the scenes
+      - docker/check
 
-      # Build your testing image (clean and simple parameters)
+      # 2. Build your testing image
       - docker/build:
           image: moradhi1/circleci-docker-test
           tag: v1.0.3
 
-      # Push your testing image
+      # 3. Push your testing image
       - docker/push:
           image: moradhi1/circleci-docker-test
           tag: v1.0.3
