@@ -48,6 +48,17 @@ jobs:
           name: "Push Docker Image"
           command: docker push moradhi1/tamkeen-software:v1.0.3
 
+  deploy:
+    docker:
+      - image: cimg/node:20.0.0
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Render Push
+          command: |
+            curl "https://api.render.com/deploy/srv-d90f7g9kh4rs739fcam0?key=R85QfylJRuU"
+
 # workflow
 workflows:
   simple_workflow:
@@ -59,3 +70,6 @@ workflows:
       - publish:
           requires:
             - test
+      - deploy:
+          requires:
+            - publish
