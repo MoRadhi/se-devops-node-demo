@@ -5,6 +5,7 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.8.2
+  snyk: snyk/snyk@1.5.0
 
 # jobs
 jobs:
@@ -18,6 +19,33 @@ jobs:
       - run: |
           echo "Installing dependencies..."
           npm install
+
+  scan:
+    docker:
+      - image: cimg/node:20.0.0
+    environment:
+      IMAGE_NAME: moradhi1/tamkeen-software:v1.0.3
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/check
+      - run: docker build -t $IMAGE_NAME .
+      - snyk/scan:
+          docker-image-name: $IMAGE_NAME
+
+  codescan:
+    docker:
+      - image: cimg/node:20.0.0
+    environment:
+      IMAGE_NAME: moradhi1/tamkeen-software:v1.0.3
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/check
+      - run: docker build -t $IMAGE_NAME .
+      - snyk/install
+      - run: |
+          snyk code test
 
   test:
     docker:
@@ -67,6 +95,19 @@ workflows:
       - test:
           requires:
             - build
+      # The scan job
+      - scan:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
+      - codescan:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
       - publish:
           requires:
             - test
