@@ -15,6 +15,7 @@ The `npm install` is the first command you will use to install all dependencies 
 The `npm run test` is the command to run the test script specified in the `package.json` file. This command in turns run the `jest` command.
 
 Sample Snippet from package.json:
+
 ```json
   "scripts": {
     "start": "node index.js",
@@ -30,3 +31,4 @@ The `npm run start` command will start the application. By default, it will use 
 Listening to port <port number>
 ```
 
+//
