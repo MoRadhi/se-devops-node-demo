@@ -1,4 +1,3 @@
-# This is a sample CircleCI configuration file for a Node.js project.
 version: 2.1
 
 # orbs
@@ -63,15 +62,12 @@ jobs:
       image: ubuntu-2204:current
     steps:
       - checkout
-
       - run:
           name: "Log in to Docker Hub"
           command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
-
       - run:
           name: "Build Docker Image"
           command: docker build -t moradhi1/tamkeen-software:v1.0.3 .
-
       - run:
           name: "Push Docker Image"
           command: docker push moradhi1/tamkeen-software:v1.0.3
@@ -91,26 +87,54 @@ jobs:
 workflows:
   simple_workflow:
     jobs:
-      - build
+      # Build and Test run on BOTH main and release branches
+      - build:
+          filters:
+            branches:
+              only:
+                - main
+                - release
       - test:
           requires:
             - build
-      # The scan job
+          filters:
+            branches:
+              only:
+                - main
+                - release
+
+      # Code scanning runs for BOTH main and release
       - scan:
           requires:
             - build
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - release
       - codescan:
           requires:
             - build
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - release
+
+      # Publish runs on both main and release
       - publish:
           requires:
             - test
+          filters:
+            branches:
+              only:
+                - main
+                - release
+
+      # Deploy runs ONLY on the release branch
       - deploy:
           requires:
             - publish
+          filters:
+            branches:
+              only: release
